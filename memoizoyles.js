@@ -25,7 +25,7 @@ var memoizeDrawText = function(textFn){
       memo[font][text] = canvas;
     }
     
-    this.drawImage(memo[font][text], x, y - canvas.height);
+    this.drawImage(memo[font][text], x, y - getHeight(font));
   }
 
   return memoized;
