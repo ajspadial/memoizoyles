@@ -19,7 +19,15 @@ var memoizeDrawText = function(textFn){
       canvas.height = getHeight(font);
       
       var ctx = canvas.getContext('2d');
-      ctx.font = font;
+      // This state attributes list was taken from 
+      // https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/save#Drawing_state
+      // So far, I don't know how to copy transformation matrix, clipping
+      // region or dash list. Maybe I would deep-copy a context into other.
+      var stateAttributes = ["strokeStyle", "fillStyle", "globalAlpha", "lineWidth", "lineCap", "lineJoin", "miterLimit", "lineDashOffset", "shadowOffsetX", "shadowOffsetY", "shadowBlur", "shadowColor", "globalCompositeOperation", "font", "textAlign", "textBaseline", "direction", "imageSmoothingEnabled"
+      ];
+      for (attribute of stateAttributes) {
+        ctx[attribute] = this[attribute];
+      }
 
       textFn.call(ctx, text, 0, canvas.height - 1);
       memo[font][text] = canvas;
