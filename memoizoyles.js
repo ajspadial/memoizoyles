@@ -9,13 +9,13 @@ var memoizeDrawText = function(textFn){
   }
 
   var memoized = function(text, x, y) {
-    var font = this.ctx.font;
+    var font = this.font;
     if (!(font in memo)) {
       memo[font] = {};
     }
     if (!(text in memo[font])) {
       var canvas = document.createElement('canvas');
-      canvas.width = this.ctx.measureText(text).width;
+      canvas.width = this.measureText(text).width;
       canvas.height = getHeight(font);
       
       var ctx = canvas.getContext('2d');
