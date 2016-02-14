@@ -8,32 +8,39 @@ var memoizeDrawText = function(textFn){
     return parseInt(font.substring(0, pxPosition));
   }
 
-  var memoized = function(text, x, y) {
-    var font = this.font;
-    if (!(font in memo)) {
-      memo[font] = {};
+  var getContextState = function(context) {
+    // This state attributes list was taken from 
+    // https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/save#Drawing_state
+    // So far, I don't know how to copy transformation matrix, clipping
+    // region or dash list. Maybe I would deep-copy a context into other.
+    var stateAttributes = ["strokeStyle", "fillStyle", "globalAlpha", "lineWidth", "lineCap", "lineJoin", "miterLimit", "lineDashOffset", "shadowOffsetX", "shadowOffsetY", "shadowBlur", "shadowColor", "globalCompositeOperation", "font", "textAlign", "textBaseline", "direction", "imageSmoothingEnabled"
+      ];
+    var stateSignature = '';
+    for (attribute of stateAttributes) {
+      stateSignature += context[attribute];
     }
-    if (!(text in memo[font])) {
+    return stateSignature;
+  }
+
+  var memoized = function(text, x, y) {
+    var state = getContextState(this);
+    var fontHeight = getHeight(this.font);
+
+    if (!(state in memo)) {
+      memo[state];
+    }
+    if (!(text in memo[state])) {
       var canvas = document.createElement('canvas');
       canvas.width = this.measureText(text).width;
-      canvas.height = getHeight(font);
+      canvas.height = getHeight(fontHeight);
       
       var ctx = canvas.getContext('2d');
-      // This state attributes list was taken from 
-      // https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/save#Drawing_state
-      // So far, I don't know how to copy transformation matrix, clipping
-      // region or dash list. Maybe I would deep-copy a context into other.
-      var stateAttributes = ["strokeStyle", "fillStyle", "globalAlpha", "lineWidth", "lineCap", "lineJoin", "miterLimit", "lineDashOffset", "shadowOffsetX", "shadowOffsetY", "shadowBlur", "shadowColor", "globalCompositeOperation", "font", "textAlign", "textBaseline", "direction", "imageSmoothingEnabled"
-      ];
-      for (attribute of stateAttributes) {
-        ctx[attribute] = this[attribute];
-      }
 
       textFn.call(ctx, text, 0, canvas.height - 1);
-      memo[font][text] = canvas;
+      memo[state][text] = canvas;
     }
     
-    this.drawImage(memo[font][text], x, y - getHeight(font));
+    this.drawImage(memo[state][text], x, y - getHeight(fontHeight));
   }
 
   return memoized;
